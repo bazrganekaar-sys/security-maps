@@ -3,61 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>سیستەمی ئەمنی کوردستان - وەشانە ئۆنڵاینە پڕۆکە</title>
+    <title>سیستەمی ئەمنی کوردستان - ئۆنڵاین</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
     <style>
         :root { --k-red: #ee352e; --k-yellow: #fecb00; --k-green: #27ae60; --k-dark: #1a252f; }
         body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; height: 100vh; background: #f0f2f5; overflow: hidden; }
-        
-        /* Login UI */
-        #login-page { position: fixed; inset: 0; background: linear-gradient(135deg, var(--k-red) 0%, var(--k-yellow) 50%, var(--k-green) 100%); z-index: 5000; display: flex; align-items: center; justify-content: center; }
+        #login-page { position: fixed; inset: 0; background: linear-gradient(135deg, var(--k-red), var(--k-yellow), var(--k-green)); z-index: 5000; display: flex; align-items: center; justify-content: center; }
         .login-card { background: white; padding: 40px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-        .login-card input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 2px solid #eee; box-sizing: border-box; }
-        
+        .login-card input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 2px solid #eee; }
         #main-app { display: none; }
-        #map { height: 100vh; width: 100%; z-index: 1; }
-        
-        /* Sidebar */
+        #map { height: 100vh; width: 100%; }
         #sidebar { position: fixed; top: 0; right: -420px; width: 400px; height: 100%; background: var(--k-dark); color: white; padding: 20px; transition: 0.4s; z-index: 2000; overflow-y: auto; box-sizing: border-box; }
         #sidebar.active { right: 0; }
-        
-        /* Buttons */
-        .toggle-btn { position: fixed; top: 20px; right: 20px; z-index: 2001; background: var(--k-green); color: white; width: 55px; height: 55px; border: none; border-radius: 50%; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .locate-btn { background: white; border: 2px solid rgba(0,0,0,0.2); border-radius: 4px; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 5px; }
-        
-        /* Form Styling */
+        .toggle-btn { position: fixed; top: 20px; right: 20px; z-index: 2001; background: var(--k-green); color: white; width: 55px; height: 55px; border: none; border-radius: 50%; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; }
         .input-group { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 15px; border-right: 4px solid var(--k-yellow); }
         .dynamic-row { display: flex; gap: 8px; margin-bottom: 8px; }
         .dynamic-row input { flex: 1; padding: 8px; border-radius: 6px; border: none; font-size: 13px; color: #333; }
-        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: bold; font-size: 14px; color: var(--k-yellow); }
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: var(--k-yellow); font-size: 14px; }
         .add-row-btn { background: var(--k-green); color: white; border: none; border-radius: 6px; padding: 4px 10px; cursor: pointer; }
         .save-btn { background: var(--k-green); color: white; padding: 14px; width: 100%; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        
-        /* Modal */
+        .admin-only { display: none; }
+        .delete-btn { background: var(--k-red); color: white; border: none; cursor: pointer; border-radius: 4px; padding: 4px 8px; }
         #details-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 95%; max-width: 700px; background: white; padding: 25px; z-index: 3000; border-radius: 20px; max-height: 90vh; overflow-y: auto; color: #1a252f; }
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2999; backdrop-filter: blur(5px); }
         .info-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         .info-table th, .info-table td { padding: 10px; border: 1px solid #dee2e6; text-align: center; font-size: 13px; }
         .section-title { background: var(--k-dark); color: white; padding: 8px; font-weight: bold; border-radius: 8px; margin-top: 20px; text-align: center; }
-        
-        /* Admin Section */
-        .admin-only { display: none; }
-        .delete-btn { background: var(--k-red); color: white; border: none; cursor: pointer; border-radius: 4px; padding: 4px 8px; }
+        .locate-btn { background: white; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; border: 2px solid rgba(0,0,0,0.2); border-radius: 4px; }
     </style>
 </head>
 <body>
 
     <div id="login-page">
         <div class="login-card">
-            <h1>☀️</h1>
+            <h1 style="margin:0; font-size: 50px;">☀️</h1>
             <h2>سیستەمی ئەمنی کوردستان</h2>
             <input type="text" id="login-user" placeholder="ناوی بەکارهێنەر">
             <input type="password" id="login-pass" placeholder="پاسۆرد">
@@ -69,7 +55,6 @@
         <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
         <div id="sidebar">
             <h3 id="user-welcome" style="text-align:center; color: var(--k-yellow);"></h3>
-            
             <div class="admin-only">
                 <div class="input-group">
                     <input type="text" id="p_name" placeholder="ناوی پڕۆژە" style="width:100%; padding:10px; border-radius:8px; border:none; margin-bottom:10px;">
@@ -78,16 +63,14 @@
                         <input type="text" id="p_shift" placeholder="شەفت" style="flex:1; padding:10px; border-radius:8px;">
                     </div>
                 </div>
-
                 <div class="input-group" id="group-tl"><div class="header-row"><span>👤 تیم لێدەر</span> <button class="add-row-btn" onclick="addRow('group-tl', 2)">+</button></div><div class="dynamic-row"><input type="text" placeholder="ناو"> <input type="text" placeholder="مۆبایل"></div></div>
                 <div class="input-group" id="group-guard"><div class="header-row"><span>🛡️ پاسەوان</span> <button class="add-row-btn" onclick="addRow('group-guard', 2)">+</button></div><div class="dynamic-row"><input type="text" placeholder="ناو"> <input type="text" placeholder="مۆبایل"></div></div>
                 <div class="input-group" id="group-car"><div class="header-row"><span>🚗 ئۆتۆمبێل</span> <button class="add-row-btn" onclick="addRow('group-car', 3)">+</button></div><div class="dynamic-row"><input type="text" placeholder="جۆر"> <input type="text" placeholder="ڕەنگ"> <input type="text" placeholder="مۆدێل"></div></div>
                 <div class="input-group" id="group-wp"><div class="header-row"><span>🔫 چەک و فیشەک</span> <button class="add-row-btn" onclick="addRow('group-wp', 3)">+</button></div><div class="dynamic-row"><input type="text" placeholder="جۆر"> <input type="text" placeholder="کۆد"> <input type="number" placeholder="فیشەک"></div></div>
-
+                
                 <input type="hidden" id="lat"><input type="hidden" id="lng">
-                <button onclick="saveToCloud()" class="save-btn">💾 پاشەکەوتکردن لە سێرڤەر</button>
+                <button onclick="saveToCloud()" class="save-btn">💾 پاشەکەوتکردن لە ئۆنڵاین</button>
             </div>
-
             <h4 style="color:var(--k-green); margin-top:20px;">📋 لیستی پڕۆژەکان:</h4>
             <div id="items-container"></div>
             <button onclick="location.reload()" style="background:var(--k-red); color:white; width:100%; padding:15px; border:none; border-radius:12px; margin-top:25px; cursor:pointer; font-weight:bold;">🚪 دەرچوون</button>
@@ -105,7 +88,7 @@
     </div>
 
     <script>
-        // *** Firebase Configuration ***
+        // *** FIREBASE CONFIG ***
         const firebaseConfig = {
             apiKey: "AIzaSyDLrsmG0rFXohabE6VSI-JTrC0EGpo3f6k",
             authDomain: "manager-map-7e19c.firebaseapp.com",
@@ -115,7 +98,6 @@
             messagingSenderId: "1038922185503",
             appId: "1:1038922185503:web:de08e0c5ad0b7e15778e2a"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -125,13 +107,21 @@
         function checkLogin() {
             const u = document.getElementById('login-user').value.trim();
             const p = document.getElementById('login-pass').value.trim();
-            db.ref('users').once('value', snap => {
-                const users = snap.val();
-                let found = null;
-                for(let id in users) { if(users[id].name === u && users[id].pass === p) found = users[id]; }
-                if(!found && u === "admin" && p === "3515217320251097") found = {name: "ئەدمین", role: "admin"};
-                if(found) { currentUser = found; startApp(); } else { alert("هەڵەیە!"); }
-            });
+            if(u === "admin" && p === "3515217320251097") {
+                currentUser = {name: "ئەدمین", role: "admin"};
+                startApp();
+            } else {
+                db.ref('users').once('value', snap => {
+                    const data = snap.val();
+                    let found = false;
+                    for(let id in data) {
+                        if(data[id].name === u && data[id].pass === p) {
+                            currentUser = data[id]; found = true; startApp(); break;
+                        }
+                    }
+                    if(!found) alert("هەڵەیە!");
+                });
+            }
         }
 
         function startApp() {
@@ -142,26 +132,24 @@
             map = L.map('map', {zoomControl: false}).setView([36.19, 44.01], 8);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-            // 1. ADD SEARCH TO MAP
-            L.Control.geocoder({ position: 'topleft', placeholder: 'گەڕان بۆ شوێن...' }).addTo(map);
+            // Search Control
+            L.Control.geocoder({ position: 'topleft', placeholder: 'گەڕان...' }).addTo(map);
 
-            // 2. ADD MY LOCATION BUTTON
-            const LocateBtn = L.Control.extend({
+            // Locate Button
+            const LocBtn = L.Control.extend({
                 options: { position: 'topleft' },
                 onAdd: function() {
-                    const btn = L.DomUtil.create('div', 'locate-btn leaflet-bar leaflet-control');
-                    btn.innerHTML = '📍';
-                    btn.title = "شوێنی من نیشان بدە";
-                    btn.onclick = () => map.locate({setView: true, maxZoom: 16});
-                    return btn;
+                    const b = L.DomUtil.create('div', 'locate-btn leaflet-bar leaflet-control');
+                    b.innerHTML = '📍';
+                    b.onclick = () => map.locate({setView: true, maxZoom: 16});
+                    return b;
                 }
             });
-            map.addControl(new LocateBtn());
+            map.addControl(new LocBtn());
 
             map.on('locationfound', e => {
                 if(myLocMarker) map.removeLayer(myLocMarker);
-                myLocMarker = L.marker(e.latlng, {icon: L.divIcon({className: 'my-loc', html: '🔵', iconSize: [20, 20]})}).addTo(map);
-                L.popup().setLatLng(e.latlng).setContent("تۆ لێرەیت").openOn(map);
+                myLocMarker = L.circleMarker(e.latlng, {radius: 8, color: 'blue'}).addTo(map).bindPopup("تۆ لێرەیت").openPopup();
             });
 
             if(currentUser.role === 'admin') {
@@ -174,7 +162,22 @@
                 });
             }
 
-            db.ref('projects').on('value', snap => { renderMarkers(snap.val()); updateSidebarList(snap.val()); });
+            db.ref('projects').on('value', snap => {
+                const data = snap.val();
+                allMarkers.forEach(m => map.removeLayer(m));
+                allMarkers = [];
+                const cont = document.getElementById('items-container');
+                cont.innerHTML = "";
+                for(let id in data) {
+                    const p = data[id];
+                    const m = L.marker([p.lat, p.lng]).addTo(map).bindPopup(`<b>${p.name}</b><br><button onclick="showDetails('${id}')">زانیاری</button>`);
+                    allMarkers.push(m);
+                    cont.innerHTML += `<div class="input-group" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span onclick="map.setView([${p.lat}, ${p.lng}], 15)" style="cursor:pointer;">📍 ${p.name}</span>
+                        ${currentUser.role === 'admin' ? `<button class="delete-btn" onclick="deleteProj('${id}')">X</button>` : ''}
+                    </div>`;
+                }
+            });
         }
 
         function addRow(id, cols) {
@@ -186,12 +189,12 @@
 
         function collect(id) {
             const rows = document.getElementById(id).querySelectorAll('.dynamic-row');
-            let data = [];
+            let res = [];
             rows.forEach(r => {
                 const ins = r.querySelectorAll('input');
-                if(ins[0].value) data.push({c1: ins[0].value, c2: ins[1].value, c3: ins[2] ? ins[2].value : ''});
+                if(ins[0].value) res.push({c1: ins[0].value, c2: ins[1].value, c3: ins[2] ? ins[2].value : ''});
             });
-            return data;
+            return res;
         }
 
         function saveToCloud() {
@@ -205,15 +208,6 @@
             });
             alert("پاشەکەوت کرا!");
             if(editMarker) map.removeLayer(editMarker);
-        }
-
-        function renderMarkers(data) {
-            allMarkers.forEach(m => map.removeLayer(m));
-            for(let id in data) {
-                const p = data[id];
-                const m = L.marker([p.lat, p.lng]).addTo(map).bindPopup(`<b>${p.name}</b><br><button onclick="showDetails('${id}')">زانیاری</button>`);
-                allMarkers.push(m);
-            }
         }
 
         window.showDetails = function(id) {
@@ -234,16 +228,7 @@
             });
         }
 
-        function updateSidebarList(data) {
-            const cont = document.getElementById('items-container'); cont.innerHTML = "";
-            for(let id in data) {
-                cont.innerHTML += `<div class="input-group" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span onclick="map.setView([${data[id].lat}, ${data[id].lng}], 15)" style="cursor:pointer;">📍 ${data[id].name}</span>
-                    ${currentUser.role === 'admin' ? `<button class="delete-btn" onclick="db.ref('projects/${id}').remove()">X</button>` : ''}
-                </div>`;
-            }
-        }
-
+        window.deleteProj = (id) => { if(confirm("بسرێتەوە؟")) db.ref('projects/' + id).remove(); }
         window.closeModal = () => { document.getElementById('details-modal').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; };
         window.toggleSidebar = () => document.getElementById('sidebar').classList.toggle('active');
     </script>
